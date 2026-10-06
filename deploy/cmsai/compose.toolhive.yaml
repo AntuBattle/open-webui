@@ -1,0 +1,35 @@
+services:
+  mock-weather:
+    # Reuse the existing local image, including its installed mcp==1.27.2 SDK.
+    image: cmsai/open-webui:local
+    network_mode: host
+    entrypoint: ["python", "/mock/mock_weather.py"]
+    volumes:
+      - ./toolhive/mock_weather.py:/mock/mock_weather.py:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 18484), timeout=2).close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  toolhive:
+    # ToolHive v0.51.4, pinned to the inspected linux/amd64 image.
+    image: ghcr.io/stacklok/toolhive/vmcp@sha256:56b3435f2fc2ae8eb2f4208be57fbbf7d5808ccfbc8b9213a9cb206eff1e0adf
+    network_mode: host
+    environment:
+      # Go loads these CERN roots alongside the image's existing system roots.
+      SSL_CERT_DIR: /etc/ssl/certs:/cern-certs
+    command: ["serve", "--config", "/config/vmcp.yaml", "--host", "127.0.0.1", "--port", "4483"]
+    volumes:
+      - ./toolhive/vmcp.yaml:/config/vmcp.yaml:ro
+      - ./toolhive/authserver-config.yaml:/config/authserver-config.yaml:ro
+      - ./certificates:/cern-certs:ro
+    depends_on:
+      mock-weather:
+        condition: service_healthy
+    restart: unless-stopped
+  open-webui:
+    environment:
+      # Active integration: remote CERN-authenticated cluster gateway.
+      TOOL_SERVER_CONNECTIONS: >-
+        [{"type":"mcp","url":"https://cms-compops-mcp-testbed.cern.ch/mcp","path":"","auth_type":"oauth_2.1","key":"","config":{"enable":true},"info":{"id":"cluster-tools","name":"Cluster Tools (ToolHive)","description":"Cluster DBS, Jira, OpenSearch, Git and Rucio tools; visibility depends on CERN gateway roles","oauth_client_info":"${TOOLHIVE_OAUTH_CLIENT_INFO:-}"}}]

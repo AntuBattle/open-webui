@@ -1,0 +1,5 @@
+services:
+  open-webui:
+    environment:
+      TOOL_SERVER_CONNECTIONS: >-
+        [{"type":"mcp","url":"https://cmspnr-api.cern.ch/mcp/sse","path":"","auth_type":"oauth_2.1","key":"","config":{"enable":true},"info":{"id":"unified","name":"Unified","description":"CMS Unified tools","oauth_client_info":"${UNIFIED_OAUTH_CLIENT_INFO:?Run scripts/register-unified.py first}"}}]

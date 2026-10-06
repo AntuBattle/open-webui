@@ -1,0 +1,18 @@
+# Local trial: signing keys, OAuth registrations and user tokens live in memory.
+# A ToolHive restart requires a new OpenWebUI gateway connection/login.
+schema_version: v0.1.0
+issuer: http://127.0.0.1:4483
+allowed_audiences:
+  - http://127.0.0.1:4483/mcp
+upstreams:
+  - name: unified
+    type: oauth2
+    oauth2_config:
+      authorization_endpoint: https://cmspnr-api.cern.ch/mcp/oauth/authorize
+      token_endpoint: https://cmspnr-api.cern.ch/mcp/oauth/token
+      redirect_uri: http://127.0.0.1:4483/oauth/callback
+      token_endpoint_auth_method: none
+      # Unified issues opaque MCP tokens and has no userinfo endpoint.
+      # ToolHive derives an internal session identity; Unified identifies the user.
+      dcr_config:
+        discovery_url: https://cmspnr-api.cern.ch/.well-known/oauth-authorization-server

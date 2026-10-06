@@ -21,3 +21,6 @@ backend/data/*
 
 .venv
 .git
+
+# Runtime CMSAI deployment settings and private local credentials.
+/deploy/cmsai
